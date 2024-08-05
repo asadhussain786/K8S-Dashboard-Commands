@@ -1,0 +1,43 @@
+Step 1: Create a Cluster 
+   #eksctl create cluster --name k8s-cluster --version 1.29 --region us-east-1 --nodegroup-name k8s-nodes --node-type t2.micro --nodes 1 --nodes-min 1 --nodes-max 2 --managed
+   Set the path
+   aws eks --region region update-kubeconfig --name cluster_name
+Step 2: Install Kubernetes Dashboard
+   #kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+   To Confirm
+   #kubectl get all -n kubernetes-dashboard
+Step 3: Create a User to Access Dashboard
+
+#vim dashboard-adminuser.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+
+#kubectl apply -f dashboard-adminuser.yaml
+
+#vim dashboard-serviceaccount.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard
+
+#kubectl apply -f dashboard-serviceaccount.yaml
+
+Step 4: Generate a token for service account 
+#kubectl -n kubernetes-dashboard create token admin-user
+
+Step 5: For dashboard access you need to apply this command and open new terminal for work
+#kubectl proxy
+
+Step 6: Install Metric Server
+#kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
